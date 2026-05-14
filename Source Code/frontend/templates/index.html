@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deepfake Detector</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --danger: #ef4444;
+      --safe: #22c55e;
+      --radius: 12px;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .header-inner {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:16px 0;
+    }
+
+    .logo h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .main-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+    }
+
+    @media(max-width:768px){
+      .main-grid { grid-template-columns:1fr; }
+    }
+
+    .panel {
+      background: var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:20px;
+    }
+
+    .panel-title {
+      font-size:0.8rem;
+      color:var(--muted);
+      margin-bottom:14px;
+    }
+
+    .upload-zone {
+      border:1.5px dashed var(--border);
+      border-radius:var(--radius);
+      padding:30px;
+      text-align:center;
+      cursor:pointer;
+      transition: 0.2s;
+    }
+
+    .upload-zone:hover {
+      border-color:var(--accent);
+      background:#f1f5f9;
+    }
+
+    .preview {
+      width:100%;
+      margin-top:12px;
+      border-radius:10px;
+      display:none;
+    }
+
+    .analyze-btn {
+      width:100%;
+      margin-top:15px;
+      padding:12px;
+      border:none;
+      border-radius:var(--radius);
+      background:var(--accent);
+      color:white;
+      font-weight:500;
+      cursor:pointer;
+    }
+
+    .analyze-btn:disabled {
+      opacity:0.5;
+      cursor:not-allowed;
+    }
+
+    .result-box {
+      padding:20px;
+      border-radius:var(--radius);
+    }
+
+    .result-box.fake {
+      background:#fef2f2;
+      border:1px solid #fecaca;
+    }
+
+    .result-box.real {
+      background:#f0fdf4;
+      border:1px solid #bbf7d0;
+    }
+
+    .verdict-label {
+      font-size:1.8rem;
+      font-weight:600;
+    }
+
+    .verdict-label.fake { color:var(--danger); }
+    .verdict-label.real { color:var(--safe); }
+
+    .bar-track {
+      height:6px;
+      background:#e2e8f0;
+      border-radius:6px;
+      margin-top:10px;
+    }
+
+    .bar-fill {
+      height:100%;
+      border-radius:6px;
+      background:var(--accent);
+    }
+
+    footer {
+      margin-top:30px;
+      text-align:center;
+      font-size:0.75rem;
+      color:var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="container header-inner">
+    <div class="logo">
+      <h1>Deepfake Detector</h1>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="main-grid">
+
+    <!-- LEFT -->
+    <div class="panel">
+      <div class="panel-title">Upload Media</div>
+
+      <div class="upload-zone" onclick="fileInput.click()">
+        <p>Click or drop image</p>
+      </div>
+
+      <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFile(event)">
+
+      <!-- IMAGE PREVIEW -->
+      <img id="preview" class="preview"/>
+
+      <button class="analyze-btn" id="analyze-btn" disabled onclick="runAnalysis()">
+        Analyze
+      </button>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel result-box" id="result-box">
+      <div class="panel-title">Result</div>
+
+      <div id="verdict" class="verdict-label">—</div>
+
+      <p id="confidence">Confidence: —</p>
+
+      <div class="bar-track">
+        <div id="bar" class="bar-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script>
+let file;
+
+function handleFile(e){
+  file = e.target.files[0];
+
+  const preview = document.getElementById("preview");
+
+  if(file){
+    const url = URL.createObjectURL(file);
+
+    if(file.type.startsWith("image/")){
+      preview.src = url;
+      preview.style.display = "block";
+    }
+  }
+
+  document.getElementById("analyze-btn").disabled = false;
+}
+
+function runAnalysis(){
+  if(!file) return;
+
+  // Dummy prediction (replace with backend later)
+  const fakeScore = Math.random();
+
+  const verdict = fakeScore > 0.5 ? "FAKE" : "REAL";
+
+  document.getElementById("verdict").textContent = verdict;
+  document.getElementById("verdict").className =
+    "verdict-label " + (verdict === "FAKE" ? "fake" : "real");
+
+  document.getElementById("confidence").textContent =
+    "Confidence: " + Math.round(Math.max(fakeScore,1-fakeScore)*100) + "%";
+
+  document.getElementById("bar").style.width =
+    Math.round(fakeScore*100) + "%";
+
+  const box = document.getElementById("result-box");
+  box.classList.remove("fake","real");
+  box.classList.add(verdict === "FAKE" ? "fake" : "real");
+}
+</script>
+
+</body>
+</html>
